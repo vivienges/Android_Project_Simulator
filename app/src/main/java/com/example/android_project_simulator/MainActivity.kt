@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.multidex.MultiDex
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
@@ -44,32 +45,20 @@ class MainActivity : AppCompatActivity() {
 
         db.collection("bikes")
             .addSnapshotListener{ snapshots, e ->
-                //!!!!!!!!!! PUT LIST UPDATE LOGIC HERE!!!!!!!!!!!!!
-                adapter.notifyDataSetChanged()
+                if (e == null && snapshots != null )
+                    //TODO: Add error handling
+                    for (documentChange in snapshots!!.documentChanges){
+                        when (documentChange.type) {
+                            DocumentChange.Type.ADDED ->
+                                idList.add(documentChange.document.id)
+                            DocumentChange.Type.REMOVED ->
+                                idList.remove(documentChange.document.id)
+                        }
+                    }
+                    adapter.notifyDataSetChanged()
             }
     }
 
-    override fun onStart() {
-        super.onStart()
-        db.collection("bikes")
-            .get()
-            .addOnSuccessListener { result ->
-                var dataChanged = false
-                for (document in result) {
-                    if (document.id !in idList) {
-                        idList.add(document.id)
-                        dataChanged = true
-                    }
-                    if (dataChanged) {
-                        adapter.notifyDataSetChanged()
-                    }
-                    Log.d("SUCCESS", "${document.id} => ${document.data}")
-                }
-            }
-            .addOnFailureListener { exception ->
-                Log.d("ERROR", "Error getting documents: ", exception)
-            }
-    }
     companion object {
         const val EXTRA_BIKE_ID = "BIKE_ID"
     }
