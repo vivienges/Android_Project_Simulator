@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         listView.setOnItemClickListener { _, _, position, _ ->
             val intent = Intent(this, BikeSimulator::class.java)
             val itemText = listView.getItemAtPosition(position).toString()
-            intent.putExtra(EXTRA_BIKE_ID, itemText)
+            intent.putExtra(EXTRA_BIKE_ID, itemText.replace("[^0-9]".toRegex(), ""))
             startActivity(intent)
         }
 
@@ -47,12 +47,13 @@ class MainActivity : AppCompatActivity() {
             .addSnapshotListener{ snapshots, e ->
                 if (e == null && snapshots != null )
                     //TODO: Add error handling
-                    for (documentChange in snapshots!!.documentChanges){
+                    for (documentChange in snapshots.documentChanges){
                         when (documentChange.type) {
                             DocumentChange.Type.ADDED ->
-                                idList.add(documentChange.document.id)
+                                idList.add("Bike " + documentChange.document.id)
                             DocumentChange.Type.REMOVED ->
-                                idList.remove(documentChange.document.id)
+                                idList.remove("Bike " + documentChange.document.id)
+                            else -> {}
                         }
                     }
                     adapter.notifyDataSetChanged()
